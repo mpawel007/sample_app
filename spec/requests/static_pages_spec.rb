@@ -1,8 +1,8 @@
-require 'spec_helper'
+require 'spec_helper.rb'
 
 describe "StaticPages" do
 
-	let( :base_title ) { "Ruby on Rails Tutorial Sample App | " }
+	let( :base_title ) { "Ruby on Rails Tutorial Sample App" }
 
 	describe "Home page" do
 		it "Should have content 'Sample App'" do
@@ -11,8 +11,13 @@ describe "StaticPages" do
 		end
 
 		it "Should have right title" do
+			visit "/static_pages/help"
+			page.should have_selector('title', :text => "#{base_title}")
+		end
+
+		it "Should NOT have coustom page title" do
 			visit "/static_pages/home"
-			page.should have_selector('title', :text => "#{base_title}Home")
+			page.should_not have_selector('title', :text => "#{base_title} | ")
 		end
 	end
 
@@ -24,7 +29,7 @@ describe "StaticPages" do
 
 		it "Should have right title" do
 			visit "/static_pages/help"
-			page.should have_selector('title', :text => "#{base_title}Help")
+			page.should have_selector('title', :text => "#{base_title} | Help")
 		end
 	end
 
@@ -36,7 +41,7 @@ describe "StaticPages" do
 
 		it "Should have right title" do
 			visit "/static_pages/about"
-			page.should have_selector('title', :text => "#{base_title}About Us")
+			page.should have_selector('title', :text => "#{base_title} | About Us")
 		end
 	end
 
@@ -48,7 +53,7 @@ describe "StaticPages" do
 
 		it "Should have title '... | Contact'" do
 			visit "/static_pages/contact"
-			page.should have_selector('title', :text => "#{base_title}Contact" )
+			page.should have_selector('title', :text => "#{base_title} | Contact" )
 		end
 	end
 
