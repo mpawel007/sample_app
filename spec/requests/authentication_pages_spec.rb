@@ -29,14 +29,24 @@ describe "Authentication" do
 			describe 'when attempting to protected page' do
 				before do
 					visit edit_user_path( user )
-					fill_in "Email", with: user.email.downcase
-					fill_in "Password", with: user.password
-					click_button "Sign in"
+					sign_in user
 				end
 
 				describe "after sign in on correct account" do
 					it "should render the desired protected page" do
 						page.should have_selector 'title', text: 'Edit user'
+					end
+
+					describe "when signing_in again" do
+						before do
+							click_link "Sign out"
+							# delete signout_path # ???
+							sign_in user
+						end
+
+						it "should render the default profile page" do
+							page.should have_selector 'title', text: user.name
+						end
 					end
 				end
 			end
@@ -64,9 +74,31 @@ describe "Authentication" do
 		before { visit signin_path }
 
 		let( :login ) { "Sign in" }
+		let( :user ) { FactoryGirl.create(:user) }
 
 		it { should have_selector 'title', text: full_title( login ) }
 		it { should have_selector 'h1', text: login }
+
+		it { should_not have_link('Users', href: users_path ) }
+		it { should_not have_link('Profile', href: user_path(user) ) }
+		it { should_not have_link('Settings', href: edit_user_path(user) ) }
+		it { should_not have_link('Sign out', href: signout_path ) }
+
+		it { should have_link('Sign in', href: signin_path ) }
+
+		describe "visited as already signed in user" do 
+			before do
+				sign_in user
+				visit signin_path
+			end
+
+			it { should_not have_selector 'title', text: login }
+
+			describe "posting new signin information" do
+				before { post signin_path }
+				specify { response.should redirect_to root_path }
+			end
+		end
 
 		describe "with invalid signin information" do
 			before { click_button login }
@@ -81,8 +113,6 @@ describe "Authentication" do
 		end
 
 		describe "with valid signin information" do
-			let( :user ) { FactoryGirl.create(:user) }
-
 			before { sign_in user }
 
 			it { should have_selector 'title', text: full_title( user.name ) }

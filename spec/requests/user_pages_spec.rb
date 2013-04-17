@@ -24,7 +24,10 @@ describe "UserPages" do
         let(:user) { FactoryGirl.create(:user) }
         let(:non_admin) { FactoryGirl.create(:user) }
 
-        before { sign_in non_admin }
+        before do
+          click_link "Sign out"
+          sign_in non_admin 
+        end
 
         describe "submitting a delete action to Users#destroy" do
           before { delete user_path( user ) }
@@ -34,15 +37,22 @@ describe "UserPages" do
 
       describe "as an admin user" do
         before do
+          click_link "Sign out"
           sign_in admin
           visit users_path
         end
 
         it{ should have_link( 'delete', href: user_path( User.first ) ) }
+        
         it "should be able to delete another user" do
           expect { click_link('delete') }.to change(User, :count).by(-1)
         end
+
         it { should_not have_link('delete', href: user_path(admin) ) }
+        
+        it "should not be able to delete himself" do
+          expect { delete user_path( admin ) }.not_to change( User, :count )
+        end
       end
     end
 
@@ -120,6 +130,22 @@ describe "UserPages" do
     it { should have_selector( 'h1', text: 'Sign up') }
     it { should have_selector( 'title', text: full_title('Sign up') ) }
 
+    describe "by signed in user" do 
+      let( :user ) { FactoryGirl.create( :user ) }
+
+      before do 
+        sign_in user
+        visit signup_path
+      end
+
+      it { should_not have_selector 'title', text: full_title('Sign up') }
+
+      describe "prevent post new data" do
+        before { post signup_path }
+        specify { response.should redirect_to( root_path ) }
+      end
+    end
+
     describe "with empty form" do
     	it "should not create a user" do
   			expect { click_button submit }.not_to change( User, :count )
@@ -141,7 +167,7 @@ describe "UserPages" do
 	  		fill_in "Name", with: "Example Name"
 	  		fill_in "Email", with: email
 	  		fill_in "Password", with: "foobar"
-	  		fill_in "Password confirmation", with: "foobar"
+	  		fill_in "Confirm Password", with: "foobar"
 	  	end
 
 	  	it "should create user" do

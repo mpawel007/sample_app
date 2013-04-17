@@ -30,6 +30,16 @@ describe User do
 
 	it { should_not be_admin }
 
+	describe "user attribute not-accesible" do
+		it "should not allow to set user attribute" do
+			expect { User.new(	name: "Example Nname", 
+								email: "user@example.com", 
+								password: "foobar", 
+								password_confirmation: "foobar", 
+								admin: true ) }.to raise_error(ActiveModel::MassAssignmentSecurity::Error)
+		end
+	end
+
 	describe "with admin attribute set to true" do
 		before do
 			@user.save!
