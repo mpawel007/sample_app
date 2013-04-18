@@ -6,11 +6,37 @@ describe "Authentication" do
 
 	describe 'autohorization' do
 
+		describe "for non signed-in users" do
+			let( :user ) { FactoryGirl.create(:user) }
+
+			describe "in Microposts controller" do
+				describe "submitting to create post" do
+					before { post microposts_path }
+					specify { response.should redirect_to signin_path }
+				end
+				describe "submitting to delete post" do
+					before { delete micropost_path( FactoryGirl.create(:micropost, user: user ) ) }
+					specify { response.should redirect_to signin_path }
+				end
+			end
+		end
+
 		describe 'as wrong user' do
 			let( :user ) { FactoryGirl.create(:user) }
 			let( :wrong_user ) { FactoryGirl.create( :user, email: 'wrong@example.com' ) }
 
 			before{ sign_in user }
+
+			# describe "in Microposts controller" do
+			# 	describe "visiting wrong user profile page with posts" do
+			# 		before { visit user_path( wrong_user ) }
+			# 		it { should_not have_selector 'textarea' }
+			# 	end
+			# 	describe "submitting to delete wrong user post" do
+			# 		before { delete micropost_path( FactoryGirl.create( :micropost, user: wrong_user ) ) }
+			# 		specify { response.should redirect_to signin_path }
+			# 	end
+			# end
 
 			describe "visiting wrong user Users#edit page" do
 				before { visit edit_user_path( wrong_user ) }
