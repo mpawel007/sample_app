@@ -16,6 +16,14 @@ describe "MicropostPages" do
 			it "should delete micropost" do
 				expect { click_link "delete" }.to change(Micropost, :count).by(-1)
 			end
+
+			describe "cannot delete other user micropost" do
+				let(:wrong_user) { FactoryGirl.create(:user, name: "wrong user", email: "wrong@user.com" ) }
+
+				before{ FactoryGirl.create(:micropost, user: wrong_user) }
+
+				it { should_not have_link 'delete', href: micropost_path( wrong_user.microposts.first ) }
+			end
 		end
 	end
 

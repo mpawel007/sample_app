@@ -11,6 +11,11 @@ describe "StaticPages" do
 		it { should have_selector( 'title', :text => full_title(page_title) ) }
 	end
 
+	after(:all) do 
+		User.delete_all
+		Micropost.delete_all
+	end
+
 	describe "Home page" do
 		before { visit root_path }
 
@@ -33,6 +38,44 @@ describe "StaticPages" do
 			it "should render the user's feed" do
 				user.feed.each do |item|
 					page.should have_selector "li##{item.id}", text: item.content
+				end
+			end
+
+			it "should not have paginaton" do
+				page.should_not have_selector "div.pagination"
+			end
+
+			describe "with proper microposts count" do
+				before do
+					Micropost.delete_all
+					visit root_path
+				end
+
+				describe "for no feed" do
+					it { should have_selector 'span.count', text: "0 microposts" }
+				end
+				describe "1 feed" do
+					before do
+						FactoryGirl.create( :micropost, user: user )
+						visit root_path
+					end
+					it { should have_selector 'span.count', text: "1 micropost" }
+				end
+				describe "more than 1 feeds" do 
+					before do
+						100.times{ FactoryGirl.create( :micropost, user: user ) }
+						visit root_path
+					end
+					it { should have_selector 'span.count', text: "#{user.microposts.count} microposts" }
+				end
+			end
+
+			describe "with bigger amount of feed" do
+				before(:all) { 30.times { FactoryGirl.create( :micropost, user: user ) } }
+				after(:all) { Micropost.delete_all }
+
+				it "should have pagination" do
+					page.should have_selector "div.pagination"
 				end
 			end
 		end
